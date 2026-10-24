@@ -1,0 +1,724 @@
+/* =========================================================================
+   WebCraft Academy — stylesheet
+   Design language: dark, modern "studio" shell in indigo/violet, holding a
+   bright, paper-white slide surface (like a light table). Each topic tab
+   carries its own real-world brand accent (HTML orange, CSS blue, JS
+   yellow) that tints the active tab, the slide's edge and its code blocks —
+   the rest of the chrome stays a consistent indigo/violet so the site never
+   feels like three unrelated skins.
+   ========================================================================= */
+
+:root {
+  /* ---- shell (dark) ---- */
+  --shell-bg: #0a0b12;
+  --shell-surface: #12131e;
+  --shell-surface-2: #191b29;
+  --shell-border: #262838;
+  --shell-text: #e8e9f3;
+  --shell-muted: #9295b3;
+  --shell-muted-2: #6b6e8a;
+
+  /* ---- base accent: indigo / violet ---- */
+  --accent-1: #6d5ef8;
+  --accent-2: #9333ea;
+  --accent-grad: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  --accent-glow: rgba(109, 94, 248, 0.35);
+
+  /* ---- topic accents (grounded in each language's real brand color) ---- */
+  --html-accent: #ff6b45;
+  --html-accent-soft: #ffe6dc;
+  --css-accent: #3b82f6;
+  --css-accent-soft: #dbeafe;
+  --js-accent: #e8b400;
+  --js-accent-soft: #fff6d6;
+
+  /* current topic accent — swapped by JS via data-topic on <html> */
+  --topic-accent: var(--accent-1);
+  --topic-accent-soft: #eeeaff;
+
+  /* ---- slide surface (light) ---- */
+  --slide-bg: #ffffff;
+  --slide-text: #1a1b26;
+  --slide-muted: #565a72;
+  --slide-border: #e7e8f0;
+  --code-bg: #161726;
+  --code-text: #d7d9ec;
+
+  /* ---- type ---- */
+  --font-display: 'Sora', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-body: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, 'Courier New', monospace;
+
+  --radius-lg: 20px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --shadow-soft: 0 1px 2px rgba(10, 11, 18, 0.04), 0 8px 24px rgba(10, 11, 18, 0.06);
+  --shadow-deep: 0 20px 60px rgba(5, 5, 15, 0.55);
+}
+
+html[data-topic="html"] { --topic-accent: var(--html-accent); --topic-accent-soft: var(--html-accent-soft); }
+html[data-topic="css"]  { --topic-accent: var(--css-accent);  --topic-accent-soft: var(--css-accent-soft); }
+html[data-topic="js"]   { --topic-accent: var(--js-accent);   --topic-accent-soft: var(--js-accent-soft); }
+
+/* ============================= RESET ================================= */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--shell-bg);
+  color: var(--shell-text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;
+}
+h1, h2, h3, p, ul, ol, dl, dd { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+button:focus-visible,
+a:focus-visible {
+  outline: 2.5px solid var(--topic-accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+img { max-width: 100%; display: block; }
+
+/* Read-only enforcement: no text selection / drag anywhere on the slide UI */
+.slide, .thumbnail-strip, .controls-bar, .topbar {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+.slide, .slide * { cursor: default; }
+
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: 0;
+  background: var(--accent-1);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 0 0 8px 0;
+  z-index: 999;
+}
+.skip-link:focus { left: 0; }
+
+/* ============================ TOPBAR =================================== */
+.topbar {
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 0 28px;
+  background: var(--shell-surface);
+  border-bottom: 1px solid var(--shell-border);
+  position: relative;
+  z-index: 20;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--accent-grad);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 6px 16px var(--accent-glow);
+}
+.brand-name { color: var(--shell-text); }
+.brand-name-accent {
+  background: linear-gradient(135deg, #c7c1ff, #e2b8ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 600;
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  background: var(--shell-surface-2);
+  padding: 5px;
+  border-radius: 999px;
+  border: 1px solid var(--shell-border);
+}
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--shell-muted);
+  transition: color 0.2s ease, background 0.25s ease, box-shadow 0.25s ease;
+}
+.tab-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.6;
+}
+.tab-dot--html { background: var(--html-accent); }
+.tab-dot--css { background: var(--css-accent); }
+.tab-dot--js { background: var(--js-accent); }
+
+.tab-btn:hover { color: var(--shell-text); }
+.tab-btn.is-active {
+  color: #17181f;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+}
+.tab-btn.is-active .tab-dot { opacity: 1; box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 25%, transparent); }
+
+.topbar-hint {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--shell-muted-2);
+  white-space: nowrap;
+}
+kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: var(--shell-surface-2);
+  border: 1px solid var(--shell-border);
+  border-bottom-width: 2px;
+  padding: 2px 6px;
+  border-radius: 5px;
+  color: var(--shell-muted);
+}
+
+/* ============================== APP LAYOUT ============================= */
+.app {
+  height: calc(100% - 68px);
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 22px 28px 18px;
+}
+.presentation {
+  width: 100%;
+  max-width: 1280px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ============================ SLIDE STAGE =============================== */
+.slide-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.stage-nav {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--shell-muted);
+  background: var(--shell-surface-2);
+  border: 1px solid var(--shell-border);
+  transition: color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+}
+.stage-nav:hover { color: #fff; background: var(--shell-border); }
+.stage-nav:active { transform: scale(0.94); }
+.stage-nav:disabled { opacity: 0.3; pointer-events: none; }
+
+.slide-zoom-wrap {
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+.slide {
+  width: 100%;
+  max-width: 940px;
+  aspect-ratio: 16 / 9.4;
+  background: var(--slide-bg);
+  color: var(--slide-text);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-deep);
+  border-top: 6px solid var(--topic-accent);
+  padding: 40px 56px 34px;
+  display: flex;
+  flex-direction: column;
+  transform: scale(var(--zoom, 1));
+  transform-origin: center center;
+  transition: transform 0.2s ease, border-color 0.3s ease;
+  overflow: hidden;
+}
+
+/* Fade/slide transition between slide contents */
+.slide-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  animation: slideIn 0.32s ease;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.slide-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--topic-accent);
+  margin-bottom: 10px;
+}
+.slide-eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--topic-accent); }
+
+.slide-icon {
+  font-size: 30px;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.slide-title {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--slide-text);
+  margin-bottom: 6px;
+}
+.slide-subtitle {
+  font-size: 15px;
+  color: var(--slide-muted);
+  margin-bottom: 18px;
+}
+
+.slide-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-right: 4px;
+  scrollbar-width: thin;
+}
+.slide-body::-webkit-scrollbar { width: 8px; }
+.slide-body::-webkit-scrollbar-thumb { background: #e3e4ee; border-radius: 8px; }
+/* Each block keeps its natural content height and never gets crushed by the
+   column flex layout — slide-body scrolls instead of squeezing children
+   (this matters most for .block-code, whose own overflow:hidden would
+   otherwise let flexbox shrink it to zero height). */
+.slide-body > * { flex-shrink: 0; }
+
+.block-text {
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: #34364a;
+  max-width: 72ch;
+}
+.block-text strong { color: var(--slide-text); font-weight: 700; }
+.block-text code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: #f2f2f8;
+  border: 1px solid #e6e6f0;
+  padding: 1px 6px;
+  border-radius: 5px;
+  color: #4b3ccf;
+}
+
+.block-list {
+  display: grid;
+  gap: 9px;
+}
+.block-list li {
+  position: relative;
+  padding-left: 26px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: #34364a;
+}
+.block-list li strong { color: var(--slide-text); }
+.block-list.is-bullet li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 8px;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--topic-accent);
+}
+.block-list.is-ordered { counter-reset: item; }
+.block-list.is-ordered li { padding-left: 30px; }
+.block-list.is-ordered li::before {
+  counter-increment: item;
+  content: counter(item);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: var(--topic-accent-soft);
+  color: var(--topic-accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.block-columns {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 2), 1fr);
+  gap: 14px;
+}
+.col-card {
+  background: #f8f8fc;
+  border: 1px solid var(--slide-border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+}
+.col-card h4 {
+  font-family: var(--font-display);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--slide-text);
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.col-card p { font-size: 13px; line-height: 1.55; color: #565a72; }
+
+.block-callout {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--slide-border);
+  background: #f8f8fc;
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+.block-callout .callout-icon { font-size: 17px; line-height: 1; flex: none; margin-top: 1px; }
+.block-callout strong { display: block; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 2px; }
+.block-callout.tone-tip { background: #eefbf1; border-color: #cdeed7; }
+.block-callout.tone-tip strong { color: #1a8a4a; }
+.block-callout.tone-warn { background: #fff7e8; border-color: #f4e3b8; }
+.block-callout.tone-warn strong { color: #b8790a; }
+.block-callout.tone-info { background: var(--topic-accent-soft); border-color: transparent; }
+.block-callout.tone-info strong { color: var(--topic-accent); }
+
+/* ---- code blocks ---- */
+.block-code {
+  background: var(--code-bg);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid #23243a;
+  box-shadow: var(--shadow-soft);
+}
+.code-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  background: #1c1d30;
+  border-bottom: 1px solid #2a2b42;
+}
+.code-dot { width: 9px; height: 9px; border-radius: 50%; }
+.code-dot:nth-child(1) { background: #ff5f57; }
+.code-dot:nth-child(2) { background: #febc2e; }
+.code-dot:nth-child(3) { background: #28c840; }
+.code-lang {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #8285a3;
+}
+.block-code pre {
+  margin: 0;
+  padding: 14px 18px 16px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 12.6px;
+  line-height: 1.65;
+  color: var(--code-text);
+  scrollbar-width: thin;
+}
+.block-code pre::-webkit-scrollbar { height: 7px; }
+.block-code pre::-webkit-scrollbar-thumb { background: #33344c; border-radius: 8px; }
+.block-code code { -webkit-user-select: text; user-select: text; } /* code text may be selected for copying only; nothing is editable */
+
+/* syntax token colors */
+.tok-kw   { color: #c792ea; font-weight: 600; }
+.tok-str  { color: #a6e3a1; }
+.tok-num  { color: #f5b662; }
+.tok-com  { color: #6b6e8a; font-style: italic; }
+.tok-tag  { color: #ff8fa3; }
+.tok-attr { color: #82d4ff; }
+.tok-val  { color: #a6e3a1; }
+.tok-sel  { color: #82d4ff; }
+.tok-prop { color: #7dcfff; }
+.tok-fn   { color: #89b4fa; }
+.tok-punc { color: #8285a3; }
+
+/* ============================ CONTROLS BAR ============================== */
+.controls-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 16px;
+  padding: 10px 16px;
+  background: var(--shell-surface);
+  border: 1px solid var(--shell-border);
+  border-radius: 999px;
+  box-shadow: var(--shadow-soft);
+}
+.controls-group { display: flex; align-items: center; gap: 10px; }
+
+.ctrl-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--shell-text);
+  background: var(--shell-surface-2);
+  border: 1px solid var(--shell-border);
+  transition: background 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+}
+.ctrl-btn:hover { background: var(--shell-border); border-color: var(--topic-accent); }
+.ctrl-btn:active { transform: scale(0.96); }
+.ctrl-btn:disabled { opacity: 0.35; pointer-events: none; }
+
+.slide-counter {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--shell-muted);
+  min-width: 54px;
+  text-align: center;
+}
+
+.icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--shell-muted);
+  background: var(--shell-surface-2);
+  border: 1px solid var(--shell-border);
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+.icon-btn:hover { color: #fff; background: var(--shell-border); border-color: var(--topic-accent); }
+.icon-btn:active { transform: scale(0.92); }
+.icon-btn:disabled { opacity: 0.35; pointer-events: none; }
+.icon-btn.is-on { color: #fff; background: var(--topic-accent); border-color: var(--topic-accent); }
+
+.zoom-level {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--shell-muted-2);
+  min-width: 38px;
+  text-align: center;
+}
+.ctrl-divider { width: 1px; height: 22px; background: var(--shell-border); margin: 0 2px; }
+
+/* ============================ THUMBNAIL STRIP =========================== */
+.thumbnail-strip {
+  flex: none;
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 6px 2px 10px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.thumbnail-strip::-webkit-scrollbar { height: 7px; }
+.thumbnail-strip::-webkit-scrollbar-thumb { background: var(--shell-border); border-radius: 8px; }
+
+.thumb {
+  flex: none;
+  width: 152px;
+  border-radius: 10px;
+  background: var(--shell-surface);
+  border: 2px solid var(--shell-border);
+  overflow: hidden;
+  text-align: left;
+  transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+.thumb:hover { border-color: var(--shell-muted-2); transform: translateY(-2px); }
+.thumb.is-active {
+  border-color: var(--topic-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--topic-accent) 22%, transparent);
+}
+.thumb-preview {
+  height: 72px;
+  background: var(--slide-bg);
+  border-bottom: 3px solid var(--topic-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  position: relative;
+}
+.thumb-num {
+  position: absolute;
+  top: 5px;
+  left: 6px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--slide-muted);
+  background: rgba(0,0,0,0.05);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.thumb-label {
+  padding: 7px 9px 9px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--shell-muted);
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.thumb.is-active .thumb-label { color: var(--shell-text); }
+
+/* ============================ FULLSCREEN MODE =========================== */
+.fs-hint {
+  display: none;
+  position: fixed;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 11, 18, 0.85);
+  backdrop-filter: blur(6px);
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--shell-muted);
+  z-index: 50;
+  border: 1px solid var(--shell-border);
+}
+
+.presentation:fullscreen,
+.presentation:-webkit-full-screen {
+  background: var(--shell-bg);
+  padding: 26px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.presentation:fullscreen .slide-stage,
+.presentation:-webkit-full-screen .slide-stage { flex: 1; }
+.presentation:fullscreen .slide,
+.presentation:-webkit-full-screen .slide { max-width: 1100px; }
+.presentation:fullscreen .thumbnail-strip,
+.presentation:-webkit-full-screen .thumbnail-strip { display: none; }
+body.is-fullscreen .fs-hint { display: block; }
+
+/* ============================ RESPONSIVE ================================ */
+@media (max-width: 980px) {
+  .topbar-hint { display: none; }
+  .slide { padding: 30px 34px 26px; }
+  .block-columns { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 720px) {
+  .topbar { padding: 0 16px; gap: 10px; }
+  .brand-name-accent, .brand-name { font-size: 15px; }
+  .brand { font-size: 15px; }
+  .tab-btn { padding: 8px 13px; font-size: 13px; }
+  .app { padding: 14px 12px 12px; }
+  .stage-nav { display: none; }
+  /* height:100% (not min-height) keeps the slide box exactly as tall as its
+     container and never taller — so the *inner* .slide-body is the only
+     thing that ever scrolls. A centered flex box that overflows its parent
+     (which min-height would allow) lands its default scroll position in the
+     middle of the content instead of the top; a box that can't overflow
+     its parent doesn't have that problem. */
+  .slide { aspect-ratio: auto; height: 100%; padding: 24px 20px 20px; border-radius: 14px; }
+  .slide-title { font-size: 21px; }
+  .controls-bar { flex-wrap: wrap; border-radius: 18px; padding: 10px; gap: 10px; }
+  .controls-group--nav { order: 1; width: 100%; justify-content: space-between; }
+  .controls-group--tools { order: 2; width: 100%; justify-content: center; }
+  .thumb { width: 118px; }
+  .thumb-preview { height: 58px; font-size: 18px; }
+  .presentation:fullscreen, .presentation:-webkit-full-screen { padding: 14px; }
+}
+
+@media (max-width: 480px) {
+  .topbar { padding: 0 10px; }
+  .brand-name { display: none; }
+  .tabs {
+    flex: 1;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    justify-content: flex-start;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab-btn { padding: 8px 12px; font-size: 12.5px; white-space: nowrap; }
+  .slide-body { gap: 10px; }
+  .block-text, .block-list li { font-size: 13.5px; }
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
